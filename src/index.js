@@ -13,8 +13,6 @@ function setup(){
     const filter = document.getElementById("launchFilter")
 
     const load = () => {
-        // 80 запусков (~год стартов SpaceX): в списке встречаются разные площадки,
-        // а не только две основные, с которых летают Starlink
         Promise.all([spaceX.launches(80, filter.value), spaceX.launchpads()])
             .then(([launches, launchpads]) => {
                 drawMap(launchpadsToGeoJSON(mergePads(launchpads, launches)));
@@ -22,20 +20,15 @@ function setup(){
             })
             .catch(error => {
                 console.error(error);
-                // в тексте ошибки сразу видно причину: 429 — лимит запросов, TypeError — сеть
                 listContainer.textContent = `Не удалось загрузить данные из API :( ${error.message}`;
             });
     };
 
-    // при переключении SpaceX / все агентства перезагружаем список и точки
+    // при переключении перезагружаем список и точки
     filter.addEventListener("change", load);
     load();
 }
 
-/**
- * Объединяем площадки из общего списка с площадками, использованными в запусках:
- * API умеет не показывать некоторые площадки в /pads/, но отдаёт их внутри запуска.
- */
 function mergePads(launchpads, launches){
     const byId = new Map(launchpads.map(pad => [pad.id, pad]));
     launches.forEach(launch => {
@@ -46,11 +39,6 @@ function mergePads(launchpads, launches){
     return Array.from(byId.values());
 }
 
-/**
- * Собираем из площадок GeoJSON FeatureCollection с точками Point.
- * В GeoJSON координаты идут строго в порядке [долгота, широта] (x, y),
- * а не [широта, долгота] — это главный нюанс сниппета со StackOverflow.
- */
 function launchpadsToGeoJSON(launchpads){
     return {
         type: "FeatureCollection",
@@ -94,7 +82,6 @@ function renderLaunches(launches, container){
     container.replaceChildren(list);
 }
 
-/** Подсвечиваем точку площадки по id (padId === null — снять подсветку). */
 function highlightLaunchpad(padId){
     d3.selectAll("circle.launchpad")
         .classed("active", d => padId != null && d.properties.id === padId)
@@ -102,7 +89,7 @@ function highlightLaunchpad(padId){
 }
 
 function drawMap(padsGeoJSON){
-    // при переключении фильтра карту перерисовываем заново — старый svg убираем
+    // при переключении фильтра карту перерисовываем заново
     d3.select("#map").selectAll("svg").remove();
     const width = 640;
     const height = 480;
@@ -133,7 +120,7 @@ function drawMap(padsGeoJSON){
         })
         .style("opacity", .7);
 
-    // точки стартовых площадок: проецируем координаты GeoJSON Point через ту же projection
+    // точки стартовых площадок
     const pads = svg.selectAll("circle.launchpad")
         .data(padsGeoJSON.features)
         .enter()

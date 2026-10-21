@@ -1,16 +1,3 @@
-/**
- * API-клиент Launch Library 2: https://ll.thespacedevs.com/2.3.0/
- *
- * Оригинальный SpaceX-API (https://api.spacexdata.com) больше не работает,
- * поэтому данные берём из Launch Library 2. У этого API эндпоинты во
- * множественном числе: /launches/, /pads/, а у каждого запуска есть
- * вложенное поле `pad` — стартовая площадка, с которой он стартовал.
- *
- * Документация: https://ll.thespacedevs.com/docs/
- *
- * У анонимных запросов лимит 15 запросов в час, поэтому ответы кэшируются
- * в localStorage: перезагрузка страницы не тратит квоту, пока кэш свежий.
- */
 
 // сколько держим ответы в кэше: запуски обновляются чаще, площадки почти не меняются
 const CACHE_TTL = {
@@ -20,8 +7,7 @@ const CACHE_TTL = {
 const CACHE_PREFIX = "launch-library:";
 
 /**
- * Необязательно: токен с https://thespacedevs.com/llapi (регистрация → Profile).
- * Без него лимит 15 запросов в час, с токеном — 150. Можно оставить пустым.
+ * Необязательно: токен с https://thespacedevs.com/llapi (регистрация Profile).
  */
 const API_TOKEN = "";
 
@@ -76,21 +62,12 @@ class SpaceX {
             });
     }
 
-    /**
-     * Последние состоявшиеся запуски.
-     * scope "spacex" (по умолчанию) — только запуски SpaceX (lsp__id=121),
-     * scope "all" — запуски всех организаций со всего мира.
-     */
     launches(limit = 30, scope = "spacex") {
         const lspFilter = scope === "spacex" ? "&lsp__id=121" : "";
         return this.get(`${this.baseUrl}/launches/previous/?limit=${limit}&ordering=-net${lspFilter}`, CACHE_TTL.launches)
             .then(page => page.results);
     }
 
-    /**
-     * Все стартовые площадки одним плоским массивом.
-     * API отдаёт максимум 100 площадок за раз, поэтому проходим по страницам (page.next).
-     */
     launchpads() {
         const fetchPage = (url, acc = []) => this.get(url, CACHE_TTL.pads).then(page => {
             const pads = acc.concat(page.results);

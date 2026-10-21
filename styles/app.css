@@ -36,13 +36,11 @@
     border-bottom: 1px solid #eee;
 }
 
-/* активный элемент списка */
 #listContainer li:hover,
 #listContainer li.active {
     background-color: #cfe3ff;
 }
 
-/* стартовые площадки на карте */
 circle.launchpad {
     fill: #e76f51;
     stroke: #ffffff;
@@ -51,7 +49,6 @@ circle.launchpad {
     cursor: pointer;
 }
 
-/* площадка, использованная в запуске, на который навели курсор */
 circle.launchpad.active {
     fill: #d90429;
     stroke: #3d0109;
